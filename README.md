@@ -48,7 +48,7 @@ Steps
 1. Clone the repostiry: 
 
 ```bash
-git clone [https://github.com/Habib-xo/Fileupload-vulnerable-app.git](https://github.com/Habib-xo/Fileupload-vulnerable-app.git)
+git clone https://github.com/Habib-xo/Fileupload-vulnerable-app.git
 cd Fileupload-vulnerable-app
 ```
 
