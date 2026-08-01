@@ -23,8 +23,8 @@ This allows an attacker to upload arbitrary files to the server and potentially 
 
 2. **Build and run the container:**
 
-   docker build -t file-upload-lab .
-   docker run -p 5000:5000 file-upload-lab
+- docker build -t file-upload-lab .
+- docker run -p 5000:5000 file-upload-lab
 
 3. **Access the application:**
    Open your browser and navigate to: http://localhost:5000

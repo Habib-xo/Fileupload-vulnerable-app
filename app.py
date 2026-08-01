@@ -1,66 +1,54 @@
 import os
-from werkzeug.utils import secure_filename
-from flask import Flask, request, render_template_string, send_from_directory
+from flask import Flask, request, render_template, send_from_directory
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = './uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER ###
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-HTML_TEMPLATE = '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>File Upload Lab - Level 1</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; }
-        .container { max-width: 500px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-        input[type=file] { margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>File Upload Security Lab</h2>
-        <p><b>Level 1:</b> Unrestricted File Upload</p>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" required><br>
-            <input type="submit" value="Upload File">
-        </form>
-    </div>
-</body>
-</html>
-'''
-
 @app.route('/')
-def index():
-    return render_template_string(HTML_TEMPLATE)
+def home():
+    return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return "No file part in request", 400
+# LEVEL 1
+@app.route('/level1')
+def level1_index():
+    return render_template('level.html', level=1, title="Level 1: Basic Upload", protection="Protection: Disabled", action_url="/level1/upload")
+
+@app.route('/level1/upload', methods=['POST'])
+def level1_upload():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        return render_template('level.html', level=1, error="No file selected!"), 400
 
     uploaded_file = request.files['file']
+    filename = uploaded_file.filename
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-    if uploaded_file.filename == '':
-        return "No selected file",400
+    return render_template('level.html', level=1, success=True, filename=filename)
 
-    if uploaded_file:
-        filename = uploaded_file.filename
-        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        uploaded_file.save(save_path)
+# LEVEL 2
+@app.route('/level2')
+def level2_index():
+    return render_template('level.html', level=2, title="Level 2: MIME Check", protection="Protection: Content-Type (Images Only)", action_url="/level2/upload")
 
-    return f'''
-    <h3>File uploaded successfully!</h3>
-    <p>File location: <code>/uploads/{filename}</code></p>
-    <a href="/uploads/{filename}">View/Execute Uploaded File</a>
-    <br><br>
-    <a href="/">Back to upload</a>
-    '''
+@app.route('/level2/upload', methods=['POST'])
+def level2_upload():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        return render_template('level.html', level=2, error="No file selected!"), 400
+
+    uploaded_file = request.files['file']
+    allowed_mimes = ['image/png', 'image/jpeg', 'image/jpg']
+
+    if uploaded_file.content_type not in allowed_mimes:
+        return render_template('level.html', level=2, error=f"Access Denied! Only Images Allowed. Received: {uploaded_file.content_type}"), 403
+
+    filename = uploaded_file.filename
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    return render_template('level.html', level=2, success=True, filename=filename)
 
 @app.route('/uploads/<filename>')
 def serve_file(filename):
