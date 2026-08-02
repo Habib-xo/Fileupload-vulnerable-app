@@ -1,3 +1,4 @@
+import uuid
 import os
 from flask import Flask, request, render_template, send_from_directory
 
@@ -77,6 +78,62 @@ def level3_upload():
     #===========================================================================
     uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return render_template('level.html', level=3, success=True, filename=filename)
+
+@app.route('/level4')
+def level4_index():
+    return render_template('level.html', level=4, 
+                           title="Level 4: Whitelist Filter", 
+                           protection="Protection: Strict Whitelist (.png, .jpg only)", 
+                           action_url="/level4/upload")
+
+@app.route('/level4/upload', methods=['POST'])
+def level4_upload():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        return render_template('level.html', level=4, error="No file selected!"), 400
+
+    uploaded_file = request.files['file']
+    filename = uploaded_file.filename
+    allowed_extensions = ['png','jpg','jpeg']
+
+    #==================================== Whitelist protection ==============================
+    file_parts = filename.split('.')
+    ext = file_parts[1].lower() if len(file_parts) > 1 else ''
+    #The code only checks for the first extension so it can be bypassed by 'file.png.php'
+    if ext not in allowed_extensions:
+        return render_template('level.html', level=4, 
+                               error=f"Access Denied! Extension '{ext}' is not allowed."), 403
+    #=========================================================================================
+
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    return render_template('level.html', level=4, success=True, filename=filename)
+
+#=============================== Level 5 (The secure implementation) ===========================================
+@app.route('/level5')
+def level5_index():
+    return render_template('level.html', level=5, 
+                           title="Level 5: Secure Implementation", 
+                           protection="Protection: Whitelist + Lowercase + UUID Renaming", 
+                           action_url="/level5/upload")
+
+@app.route('/level5/upload', methods=['POST'])
+def level5_upload():
+    if 'file' not in request.files or request.files['file'].filename == '':
+        return render_template('level.html', level=5, error="No file selected!"), 400
+
+    uploaded_file = request.files['file']
+    original_filename = uploaded_file.filename
+    allowed_extensions = ['.png','.jpg','.jpeg'] #whitelist by allowed extensions (1)
+
+    file_ext = os.path.splitext(original_filename)[1].lower() #only get the last extension (2)
+
+    if file_ext not in allowed_extensions: # blocking any extension not allowed (3)
+        return render_template('level.html', level=5, 
+                               error=f"Access Denied! Extension '{file_ext}' is strictly forbidden."), 403
+
+    secure_filename = f"{uuid.uuid4().hex}{file_ext}" #rename the file by a random uuid 
+
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename))
+    return render_template('level.html', level=5, success=True, filename=secure_filename)
  
 @app.route('/uploads/<filename>')
 def serve_file(filename):

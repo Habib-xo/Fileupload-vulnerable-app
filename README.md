@@ -38,6 +38,18 @@ file-upload-lab/
 * **Vulnerability:** Case-sensitive string comparison — fails to normalize extensions using `.lower()`.
 * **Exploitation:** Rename the payload extension to uppercase or mixed-case (e.g., `shell.PY` or `script.PhP`) to bypass the filter.
 
+### Level 4: Extension Whitelist Bypass (Double Extension)
+* **Protection:** Enforces an extension whitelist (`.png`, `.jpg`).
+* **Vulnerability:** Weak string parsing — the server checks the first extension after the split rather than the final file extension.
+* **Exploitation:** Upload a payload named using double extensions (e.g., `exploit.png.py`). The server validates `.png` and accepts the upload, while the OS/interpreter executes `.py`.
+
+### Level 5: Secure Implementation (Patched)
+* **Protection:** 
+  1. Strict extension Whitelisting (`.png`, `.jpg`, `.jpeg`).
+  2. Input normalization using `.lower()`.
+  3. Randomized UUID filename generation (prevents execution of original scripts & path traversal).
+* **Result:** **Fully Secured** against bypass attempts.
+
 ## How to run with Docker
 
 Prerequests

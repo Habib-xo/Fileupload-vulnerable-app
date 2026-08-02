@@ -7,7 +7,7 @@
 <body>
     <div class="card">
         {% if success %}
-            <h3 style="color: #2e7d32;">✅ Level {{ level }} Bypassed!</h3>
+            <h3 style="color: #2e7d32;">Level {{ level }} Bypassed!</h3>
             <p style="margin: 15px 0;">File saved: <code>/uploads/{{ filename }}</code></p>
             <a href="/uploads/{{ filename }}">View File</a> | <a href="/level{{ level }}">Back</a>
         {% elif error %}
