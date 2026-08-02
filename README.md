@@ -21,23 +21,22 @@ file-upload-lab/
     └── level.html      # Dynamic template for all lab levels
 ```
 ---
-## Lab Levels Overview
+## 🎯 Lab Levels Overview
 
-### Level 1: Unrestricted file upload (No Validation)
-
-- Vulnerability: The server accepts and stores any uploaded file without validation.
-
-- Impact: Arbitrary file upload leading to Remote Code Execution (RCE).
-
-- Exploitation: Upload any executable file/script directly and trigger it via /uploads/<filename>.
+### Level 1: Unrestricted File Upload (No Validation)
+* **Protection:** None.
+* **Vulnerability:** The application accepts and saves files without inspecting their extensions or content.
+* **Exploitation:** Direct upload of executable scripts leading to **Remote Code Execution (RCE)**.
 
 ### Level 2: Content-Type / MIME Check Bypass
+* **Protection:** Validates incoming HTTP `Content-Type` headers against allowed image types (`image/png`, `image/jpeg`).
+* **Vulnerability:** Relies on client-supplied headers without inspecting actual file bytes.
+* **Exploitation:** Intercept the upload request using **Burp Suite** and modify the `Content-Type` header to `image/png`.
 
-- Protection: The server validates the Content-Type header sent in the HTTP request (allows only image/png, image/jpeg).
-
-- Vulnerability: Weak server-side logic relying purely on client-supplied headers.
-
-- Exploitation: Upload a script (e.g., .py / .php), intercept the request in Burp Suite, and modify the Content-Type header to image/png.
+### Level 3: Extension Blacklist Bypass (Case Sensitivity)
+* **Protection:** Enforces a blacklist blocking sensitive file extensions (`.py`, `.php`, `.sh`, `.exe`).
+* **Vulnerability:** Case-sensitive string comparison — fails to normalize extensions using `.lower()`.
+* **Exploitation:** Rename the payload extension to uppercase or mixed-case (e.g., `shell.PY` or `script.PhP`) to bypass the filter.
 
 ## How to run with Docker
 

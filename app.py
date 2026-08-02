@@ -23,11 +23,13 @@ def level1_upload():
     if 'file' not in request.files or request.files['file'].filename == '':
         return render_template('level.html', level=1, error="No file selected!"), 400
 
+    #===================== vulnerable part ==================================
     uploaded_file = request.files['file']
     filename = uploaded_file.filename
-    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #Saves the file directly without any form of validation
     return render_template('level.html', level=1, success=True, filename=filename)
+    #========================================================================
+
 
 # LEVEL 2
 @app.route('/level2')
@@ -39,17 +41,43 @@ def level2_upload():
     if 'file' not in request.files or request.files['file'].filename == '':
         return render_template('level.html', level=2, error="No file selected!"), 400
 
+    #======================== protection by content type only ===============================
     uploaded_file = request.files['file']
     allowed_mimes = ['image/png', 'image/jpeg', 'image/jpg']
 
-    if uploaded_file.content_type not in allowed_mimes:
+    if uploaded_file.content_type not in allowed_mimes: #intercepting the request and spoof the header of content type and set to image/png can simply bypass the protection
         return render_template('level.html', level=2, error=f"Access Denied! Only Images Allowed. Received: {uploaded_file.content_type}"), 403
 
     filename = uploaded_file.filename
-    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))  
     return render_template('level.html', level=2, success=True, filename=filename)
+    #========================================================================================
 
+@app.route('/level3')
+def level3_index():
+    return render_template('level.html',level=3, 
+                           title='Level 3: Blacklist filter',
+                           protection="Protection: Extension Blacklist (Blocks .py, .php, .sh)",
+                            action_url="/level3/upload")
+
+@app.route('/level3/upload', methods=['POST'])
+def level3_upload():
+    if 'file' not in request.files or request.files['file'] == '':
+        return render_template('level.html', level=3, error="No file selected !"), 400
+
+    uploaded_file = request.files['file']
+    filename = uploaded_file.filename
+
+    #======================== Blacklist Protection ============================
+    blacklisted_extension = ['.py', '.php', '.sh', '.exe'] 
+    file_ext = os.path.splitext(filename)[1]
+
+    if file_ext in blacklisted_extension: # !!! checks if extension in blacklist but fails to normalize input using .lower() '.PY' bypasses '.py'
+        return render_template('level.html', level=3, error=f"Access Denied! Extension '{file_ext}' is strictly forbidden."), 400
+    #===========================================================================
+    uploaded_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    return render_template('level.html', level=3, success=True, filename=filename)
+ 
 @app.route('/uploads/<filename>')
 def serve_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
